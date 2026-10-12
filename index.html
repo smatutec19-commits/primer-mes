@@ -2,9 +2,11 @@
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<!-- DEDICA:META -->
 <title>Galaxia Simple - Primer Mes de Novios</title>
 <meta name="description" content="Una galaxia sencilla con agujero negro, anillo morado y fotos flotando entre frases de nuestro primer mes juntos.">
 <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 100 100&#39;&gt;&lt;text y=&#39;.9em&#39; font-size=&#39;90&#39;&gt;💜&lt;/text&gt;&lt;/svg&gt;">
+<!-- DEDICA:PRELOAD -->
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
 <link href="./css/fonts.css" rel="stylesheet">
@@ -50,21 +52,23 @@
     animation:parpadeo 2.2s ease-in-out infinite;
   }
   @keyframes parpadeo{0%,100%{opacity:.55;}50%{opacity:1;}}
+  @media (prefers-reduced-motion:reduce){
+    #start-heart,#start-text{animation:none;}
+  }
 </style>
 </head>
 <body>
-<canvas id="c" data-engine="three.js r148"></canvas>
+<canvas id="c" data-engine="three.js r148" width="1863" height="927" style="width: 1491px; height: 742px;"></canvas>
 
 <h1 id="main-title">Feliz Primer Mes 💜</h1>
 
-<div id="start-screen">
+<div id="start-screen" style="">
   <div id="start-heart" aria-hidden="true">💜</div>
-  <div id="start-text">Toca para iniciar y escuchar la música</div>
+  <div id="start-text">Toca para iniciar</div>
 </div>
 
-<!-- Canción romántica configurada para reproducirse al tocar -->
-<audio id="audio" loop preload="auto">
-  <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=romantic-guitars-112134.mp3" type="audio/mpeg">
+<audio id="audio" loop="">
+  <source src="assets/musica.mp3" type="audio/mpeg">
 </audio>
 
 <script src="./js/three.min.js"></script>
@@ -81,158 +85,252 @@ const DEFAULTS = {
     "🟣 Tu risa es mi sonido favorito", "💜 Gracias por este mes lleno de amor", "🟣 Eres mi paz y mi alegría",
     "💜 Quédate conmigo siempre", "🟣 Te adoro con todo el corazón", "💜 Nuestro primer mes juntos"
   ],
-  fotos: ["assets/img1.png","assets/img2.png","assets/img3.png"]
+  fotos: ["assets/img1.png","assets/img2.png","assets/img3.png"],
+  musica: "assets/musica.mp3"
 };
+const CONFIG=(window.DEDICA&&window.DEDICA.merge)?window.DEDICA.merge(DEFAULTS,window.DEDICA.config):DEFAULTS;
+</script>
 
-const audio = document.getElementById('audio');
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+<script>
+document.getElementById('main-title').textContent=CONFIG.titulo;
+const audio=document.getElementById('audio');
+audio.querySelector('source').src=CONFIG.musica;
+audio.load();
+
+const canvas=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.setSize(innerWidth,innerHeight);
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,5000);
-let targetDist=300, currentDist=300, rotX=0.2, rotY=0;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,5000);
+let targetDist=300,currentDist=300,rotX=0.2,rotY=0;
 
-// Estrellas de fondo
-(function makeStars(count=2000, spread=3000){
-  const g = new THREE.BufferGeometry();
-  const pos = new Float32Array(count*3);
-  for(let i=0; i<count; i++){
-    const r = spread*(0.3+Math.random()*0.7);
-    const th = Math.random()*Math.PI*2;
-    const ph = Math.acos(2*Math.random()-1);
-    pos[i*3+0] = r*Math.sin(ph)*Math.cos(th);
-    pos[i*3+1] = r*Math.cos(ph);
-    pos[i*3+2] = r*Math.sin(ph)*Math.sin(th);
+(function makeStars(count=2000,spread=3000){
+  const g=new THREE.BufferGeometry();
+  const pos=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const r=spread*(0.3+Math.random()*0.7);
+    const th=Math.random()*Math.PI*2;
+    const ph=Math.acos(2*Math.random()-1);
+    pos[i*3+0]=r*Math.sin(ph)*Math.cos(th);
+    pos[i*3+1]=r*Math.cos(ph);
+    pos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
   }
-  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  scene.add(new THREE.Points(g, new THREE.PointsMaterial({size:1.5, color:0xe6e6fa, depthWrite:false})));
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({size:1.5,color:0xe6e6fa,depthWrite:false})));
 })();
 
 function planetTexture(size=512){
-  const c = document.createElement('canvas'); c.width = size; c.height = size/2;
-  const g = c.getContext('2d');
-  const grad = g.createLinearGradient(0,0,0,c.height);
+  const c=document.createElement('canvas');c.width=size;c.height=size/2;
+  const g=c.getContext('2d');
+  const grad=g.createLinearGradient(0,0,0,c.height);
   [['#2e1a47',0.00],['#483d8b',0.08],['#6a5acd',0.16],['#7b68ee',0.24],
    ['#9370db',0.33],['#ba55d3',0.42],['#9370db',0.50],['#7b68ee',0.58],
    ['#6a5acd',0.67],['#483d8b',0.75],['#8a2be2',0.83],['#9370db',0.90],
    ['#2e1a47',1.00]].forEach(([col,stop])=>grad.addColorStop(stop,col));
-  g.fillStyle = grad; g.fillRect(0,0,c.width,c.height);
+  g.fillStyle=grad;g.fillRect(0,0,c.width,c.height);
+  
+  for(let i=0;i<80;i++){
+    const y=Math.random()*c.height;
+    g.fillStyle='rgba(230,230,250,'+(0.03+Math.random()*0.05)+')';
+    g.fillRect(0,y,c.width,1+Math.random()*2);
+  }
   return new THREE.CanvasTexture(c);
 }
-
-const coreMat = new THREE.MeshStandardMaterial({map: planetTexture(), roughness:0.85, metalness:0.05});
-const core = new THREE.Mesh(new THREE.SphereGeometry(40,64,64), coreMat);
+const coreMat=new THREE.MeshStandardMaterial({map:planetTexture(),roughness:0.85,metalness:0.05});
+const core=new THREE.Mesh(new THREE.SphereGeometry(40,64,64),coreMat);
 scene.add(core);
 
-scene.add(new THREE.AmbientLight(0xd8bfd8, 0.55));
-const keyLight = new THREE.DirectionalLight(0xe6e6fa, 1.15);
+scene.add(new THREE.AmbientLight(0xd8bfd8,0.55));
+const keyLight=new THREE.DirectionalLight(0xe6e6fa,1.15);
 keyLight.position.set(220,160,280);
 scene.add(keyLight);
 
-// Brillo central morado
-const GLOW_BASE = 360;
-function makeGlow(size=768, c1='186,85,211', c2='75,0,130'){
-  const c = document.createElement('canvas'); c.width = c.height = size;
-  const g = c.getContext('2d');
-  const grad = g.createRadialGradient(size/2,size/2,size*0.05,size/2,size/2,size*0.5);
+const GLOW_BASE=360;
+function makeGlow(size=768,c1='186,85,211',c2='75,0,130'){
+  const c=document.createElement('canvas');c.width=c.height=size;
+  const g=c.getContext('2d');
+  const grad=g.createRadialGradient(size/2,size/2,size*0.05,size/2,size/2,size*0.5);
   grad.addColorStop(0,'rgba('+c1+',0.55)');
   grad.addColorStop(0.5,'rgba('+c2+',0.25)');
   grad.addColorStop(1,'rgba(0,0,0,0)');
-  g.fillStyle = grad; g.fillRect(0,0,size,size);
+  g.fillStyle=grad;g.fillRect(0,0,size,size);
   return new THREE.CanvasTexture(c);
 }
-const glow = new THREE.Sprite(new THREE.SpriteMaterial({map: makeGlow(), transparent:true, depthWrite:false}));
-glow.scale.set(GLOW_BASE, GLOW_BASE, 1);
+const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlow(),transparent:true,depthWrite:false}));
+glow.scale.set(GLOW_BASE,GLOW_BASE,1);
 scene.add(glow);
 
-// Anillo morado
 function ringTexture(size=1024){
-  const c = document.createElement('canvas'); c.width = c.height = size;
-  const g = c.getContext('2d'); g.translate(size/2,size/2);
-  const rInner=size*0.205, rOuter=size*0.49;
+  const c=document.createElement('canvas');c.width=c.height=size;
+  const g=c.getContext('2d');g.translate(size/2,size/2);
+  const rInner=size*0.205,rOuter=size*0.49;
 
-  const grd = g.createRadialGradient(0,0,rInner,0,0,rOuter);
-  grd.addColorStop(0.00,'rgba(230,230,250,1)');
+  const grd=g.createRadialGradient(0,0,rInner,0,0,rOuter);
+  grd.addColorStop(0.00,'rgba(240,230,140,1)');
   grd.addColorStop(0.30,'rgba(218,112,214,1)');
   grd.addColorStop(0.65,'rgba(138,43,226,0.95)');
   grd.addColorStop(1.00,'rgba(75,0,130,0.85)');
-  g.fillStyle = grd;
-  g.beginPath(); g.arc(0,0,rOuter,0,Math.PI*2); g.arc(0,0,rInner,0,Math.PI*2,true); g.closePath(); g.fill();
+  g.fillStyle=grd;
+  g.beginPath();g.arc(0,0,rOuter,0,Math.PI*2);g.arc(0,0,rInner,0,Math.PI*2,true);g.closePath();g.fill();
+
+  const bandCount=26;
+  for(let i=0;i<bandCount;i++){
+    const r=rInner+(rOuter-rInner)*(i/(bandCount-1));
+    const dark=i%3===0;
+    g.beginPath();
+    g.arc(0,0,r,0,Math.PI*2);
+    g.lineWidth=(rOuter-rInner)/bandCount*(0.55+Math.random()*0.35);
+    g.strokeStyle=dark?'rgba(40,0,60,0.20)':'rgba(230,230,250,0.16)';
+    g.stroke();
+  }
   return new THREE.CanvasTexture(c);
 }
-const ring = new THREE.Mesh(new THREE.RingGeometry(42,116,160), new THREE.MeshBasicMaterial({map: ringTexture(), transparent:true, side:THREE.DoubleSide, blending:THREE.AdditiveBlending}));
-ring.rotation.x = Math.PI/2;
+const ring=new THREE.Mesh(new THREE.RingGeometry(42,116,160),new THREE.MeshBasicMaterial({map:ringTexture(),transparent:true,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,opacity:1}));
+ring.rotation.x=Math.PI/2;
 scene.add(ring);
 
-// Frases flotantes del primer mes
-const WORDS = Array.from({length: 150}, (_,i)=> DEFAULTS.frases[i%DEFAULTS.frases.length]);
-function makeTextTexture(text, color){
-  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
-  const ctx = c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff'; ctx.shadowColor = color; ctx.shadowBlur = 30;
-  ctx.font = "45px 'Indie Flower', cursive";
-  ctx.fillText(text, c.width/2, c.height/2);
+const frasesBase=(Array.isArray(CONFIG.frases)&&CONFIG.frases.length)?CONFIG.frases:DEFAULTS.frases;
+const WORD_SLOTS=150;
+const WORDS=Array.from({length:WORD_SLOTS},(_,i)=>frasesBase[i%frasesBase.length]);
+function makeTextTexture(text,color){
+  const c=document.createElement('canvas');c.width=512;c.height=128;
+  const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#fff';ctx.shadowColor=color;ctx.shadowBlur=30;
+
+  let fontSize=60;
+  ctx.font=fontSize+"px 'Indie Flower', cursive";
+  while(ctx.measureText(text).width>480&&fontSize>24){
+    fontSize-=2;
+    ctx.font=fontSize+"px 'Indie Flower', cursive";
+  }
+  ctx.fillText(text,c.width/2,c.height/2);
   return new THREE.CanvasTexture(c);
 }
+const COLORS=['#da70d6','#ba55d3','#9370db','#8a2be2','#dda0dd','#ee82ee','#9400d3','#9932cc','#c71585','#d8bfd8'];
+const textGroup=new THREE.Group();scene.add(textGroup);
 
-const COLORS = ['#da70d6','#ba55d3','#9370db','#8a2be2','#dda0dd','#ee82ee','#9400d3'];
-const textGroup = new THREE.Group(); scene.add(textGroup);
-
-WORDS.forEach((word, i)=>{
-  const tex = makeTextTexture(word, COLORS[i%COLORS.length]);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent:true}));
-  sp.scale.set(68, 21.8, 1);
-  const phi = Math.acos(2*Math.random()-1), theta = Math.random()*Math.PI*2;
-  const r = 150 + Math.random()*120;
-  sp.position.set(r*Math.sin(phi)*Math.cos(theta), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(theta));
-  sp.userData = {phi, theta, radius: r, speed: 0.001 + Math.random()*0.001};
-  textGroup.add(sp);
+document.fonts.load("40px 'Indie Flower'").catch(()=>{}).then(()=>{
+  for(let i=0;i<WORDS.length;i++){
+    const tex=makeTextTexture(WORDS[i],COLORS[i%COLORS.length]);
+    const mat=new THREE.SpriteMaterial({map:tex,transparent:true});
+    const sp=new THREE.Sprite(mat);
+    sp.scale.set(68,21.8,1);
+    const phi=Math.acos(2*Math.random()-1);const theta=Math.random()*Math.PI*2;
+    const r=150+Math.random()*120;
+    sp.position.set(r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));
+    sp.userData={phi:phi,theta:theta,radius:r,speed:0.001+Math.random()*0.001};
+    textGroup.add(sp);
+  }
 });
 
-// Interacción táctil y de mouse
-let dragging=false, lastX=0, lastY=0;
-addEventListener('mousedown', e=>{dragging=true; lastX=e.clientX; lastY=e.clientY;});
-addEventListener('mousemove', e=>{
-  if(!dragging) return;
-  rotY -= (e.clientX - lastX)/innerWidth * 5;
-  rotX = Math.max(-1.2, Math.min(1.2, rotX + (e.clientY - lastY)/innerHeight * 3.5));
-  lastX = e.clientX; lastY = e.clientY;
-});
-addEventListener('mouseup', ()=> dragging=false);
-addEventListener('wheel', e=>{
-  targetDist = Math.max(160, Math.min(600, targetDist + e.deltaY*0.25));
-},{passive:true});
+const fotosBase=(Array.isArray(CONFIG.fotos)&&CONFIG.fotos.length)?CONFIG.fotos:DEFAULTS.fotos;
+function makePhotoSprite(url,size){
+  const c=document.createElement('canvas');c.width=c.height=256;
+  const tex=new THREE.CanvasTexture(c);
+  const mat=new THREE.SpriteMaterial({map:tex,transparent:true});
+  const sp=new THREE.Sprite(mat);
+  sp.scale.set(size,size,1);
+  const img=new Image();img.crossOrigin='anonymous';
+  img.onload=()=>{
+    const ctx=c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    
+    const s=Math.min(c.width/img.width,c.height/img.height);
+    ctx.drawImage(img,(c.width-img.width*s)/2,(c.height-img.height*s)/2,img.width*s,img.height*s);
+    tex.needsUpdate=true;
+    const aspect=img.naturalWidth/img.naturalHeight;
+    const aX=Math.min(1,aspect),aY=Math.min(1,1/aspect);
+    sp.scale.set(size*aX,size*aY,1);
+  };
+  img.onerror=()=>{};
+  img.src=url;
+  return sp;
+}
+const photoGroup=new THREE.Group();scene.add(photoGroup);
+const PHOTO_COUNT=26;
+for(let i=0;i<PHOTO_COUNT;i++){
+  const url=fotosBase[i%fotosBase.length];
+  const size=28+Math.random()*20;
+  const sp=makePhotoSprite(url,size);
+  const phi=Math.acos(2*Math.random()-1);const theta=Math.random()*Math.PI*2;
+  const r=140+Math.random()*170;
+  sp.position.set(r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));
+  sp.userData={phi:phi,theta:theta,radius:r,speed:0.0006+Math.random()*0.0012};
+  photoGroup.add(sp);
+}
 
-// Bucle de animación
+let dragging=false,lastX=0,lastY=0;
+function onDown(e){dragging=true;const t=e.touches?e.touches[0]:e;lastX=t.clientX;lastY=t.clientY;}
+function onMove(e){if(!dragging)return;const t=e.touches?e.touches[0]:e;const dx=(t.clientX-lastX)/innerWidth;const dy=(t.clientY-lastY)/innerHeight;rotY-=dx*5;rotX=Math.max(-1.2,Math.min(1.2,rotX+dy*3.5));lastX=t.clientX;lastY=t.clientY;}
+function onUp(){dragging=false;}
+addEventListener('mousedown',onDown);addEventListener('mousemove',onMove);addEventListener('mouseup',onUp);
+addEventListener('touchstart',onDown,{passive:true});addEventListener('touchmove',onMove,{passive:true});addEventListener('touchend',onUp,{passive:true});
+addEventListener('wheel',(e)=>{targetDist+=e.deltaY*0.25;targetDist=Math.max(160,Math.min(600,targetDist));},{passive:true});
+
+let pinch=0;
+addEventListener('touchmove',(e)=>{
+  if(e.touches && e.touches.length===2){
+    e.preventDefault();
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const d=Math.hypot(dx,dy);
+    if(pinch){targetDist+=(pinch-d)*0.5;targetDist=Math.max(160,Math.min(600,targetDist));}
+    pinch=d;
+  }
+},{passive:false});
+addEventListener('touchend',()=>{pinch=0;},{passive:true});
+
+// Animación
 let t=0;
-function tick(){
-  requestAnimationFrame(tick);
-  t += 0.01;
-  ring.rotation.z += 0.003;
-  core.scale.setScalar(1.0 + 0.05*Math.sin(t*3));
-  
+function tick(){requestAnimationFrame(tick);t+=0.01;
+  ring.rotation.z+=0.003;
+  glow.scale.set(GLOW_BASE*(1+Math.sin(t*0.4)*0.03),GLOW_BASE*(1+Math.sin(t*0.4)*0.03),1);
+  const s=1.0+0.05*Math.sin(t*3); // latido
+  core.scale.set(s,s,s);
   textGroup.children.forEach(sp=>{
-    sp.userData.theta += sp.userData.speed;
-    sp.position.x = sp.userData.radius * Math.sin(sp.userData.phi) * Math.cos(sp.userData.theta);
-    sp.position.z = sp.userData.radius * Math.sin(sp.userData.phi) * Math.sin(sp.userData.theta);
+    sp.material.opacity=0.8+0.2*Math.sin(t*2);
+    sp.userData.theta+=sp.userData.speed;
+    sp.position.x=sp.userData.radius*Math.sin(sp.userData.phi)*Math.cos(sp.userData.theta);
+    sp.position.z=sp.userData.radius*Math.sin(sp.userData.phi)*Math.sin(sp.userData.theta);
   });
-
-  currentDist += (targetDist - currentDist) * 0.06;
-  camera.position.set(currentDist*Math.sin(rotY)*Math.cos(rotX), currentDist*Math.sin(rotX), currentDist*Math.cos(rotY)*Math.cos(rotX));
-  camera.lookAt(0,0,0);
-  renderer.render(scene, camera);
+  photoGroup.children.forEach(sp=>{
+    sp.material.opacity=0.85+0.15*Math.sin(t*2+sp.userData.radius);
+    
+    sp.userData.theta+=sp.userData.speed;
+    sp.position.x=sp.userData.radius*Math.sin(sp.userData.phi)*Math.cos(sp.userData.theta);
+    sp.position.z=sp.userData.radius*Math.sin(sp.userData.phi)*Math.sin(sp.userData.theta);
+  });
+  currentDist+=(targetDist-currentDist)*0.06;
+  const cx=Math.cos(rotX),sx=Math.sin(rotX);const cy=Math.cos(rotY),sy=Math.sin(rotY);
+  camera.position.set(currentDist*sy*cx,currentDist*sx,currentDist*cy*cx);camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
 }
 tick();
 
-// Iniciar experiencia y reproducir música al hacer clic
-const startScreen = document.getElementById('start-screen');
-startScreen.addEventListener('click', () => {
+const startScreen=document.getElementById('start-screen');
+function startExperience(){
   startScreen.classList.add('hidden');
-  setTimeout(()=> startScreen.style.display='none', 800);
-  audio.play().catch(err => console.log("Audio play error:", err));
-});
+  setTimeout(()=>startScreen.style.display='none',800);
+  
+  // Reproducción de audio blindada para que nunca bloquee la pantalla si hay un error
+  try {
+    audio.muted=false;
+    audio.volume=1;
+    let playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        console.log('🎵 Música reproduciendo correctamente');
+      }).catch(err => {
+        console.warn('⚠️ Audio bloqueado o no disponible, pero la experiencia continúa:', err);
+      });
+    }
+  } catch(e) {
+    console.log('Audio omitido sin afectar la animación.');
+  }
+}
+startScreen.addEventListener('click',startExperience);
 </script>
-</body>
-</html>
+
+</body></html>
